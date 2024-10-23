@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kutt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kutt
+  template:
+    metadata:
+      labels:
+        app: kutt
+    spec:
+      containers:
+      - name: kutt
+        image: kutt/kutt
+        command: ["./wait-for-it.sh", "postgres:5432", "--", "npm", "start"]
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DB_HOST
+          value: "postgres"
+        - name: DB_NAME
+          value: "kutt"
+        - name: DB_USER
+          value: "user"
+        - name: DB_PASSWORD
+          value: "pass"
+        - name: REDIS_HOST
+          value: "redis"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kutt
+spec:
+  selector:
+    app: kutt
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+  type: LoadBalancer
